@@ -7,11 +7,5 @@ namespace Pipeline
 #pragma warning restore S2326 // Unused type parameters should be removed
     {
         // marker interface
-
-        //async Task ExecuteAsync(
-        //    Action next,
-        //    Action<TOptions> action,
-        //    IRequestResponseContext inputOutputContext,
-        //    ILogger<ICommand>? logger);
     }
 }

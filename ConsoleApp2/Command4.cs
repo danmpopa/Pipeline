@@ -12,10 +12,12 @@ namespace Pipeline
         public async Task ExecuteAsync(
             Func<Task> next,
             Action<Command4Options> action,
-            IRequestContext inputOutputContext,
-            ILogger<Command4>? logger)
+            IRequestResponseContext context,
+            ILoggerFactory? loggerFactory)
         {
             Console.WriteLine($"Executing {nameof(Command4)} before next");
+
+            var logger = loggerFactory?.CreateLogger<Command4>();
 
             Command4Options options = new()
             {
@@ -28,6 +30,12 @@ namespace Pipeline
             Console.WriteLine(@$"Options are: 
                     {nameof(Command4Options.IntProperty)}: {options.IntProperty}
                     {nameof(Command4Options.StringProperty)}: {options.StringProperty}");
+
+            var initResponse = context.Response;
+            context.Response = $"{options.StringProperty} & {options.IntProperty}";
+
+            await Console.Out.WriteLineAsync(@$"
+                From value: '{initResponse}' to response '{context.Response}'");
 
             await next();
 

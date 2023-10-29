@@ -1,19 +1,24 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics.Contracts;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Pipeline
 {
     public sealed class Pipeline
     {
         private readonly ConcurrentQueue<KeyValuePair<Type, object?>> _actions = new();
-
+        private readonly ILogger<Pipeline>? _logger;
+        private readonly ILoggerFactory? _loggerFactory;
         private object? _context;
+
+        public Pipeline(ILoggerFactory? loggerFactory)
+        {
+            _loggerFactory = loggerFactory;
+            _logger = loggerFactory?.CreateLogger<Pipeline>();
+
+            _logger?.LogDebug("{Module} initialized", $"{nameof(Pipeline)}");
+        }
 
         public Pipeline Use<TComand>() where TComand : ICommand
         {
@@ -91,6 +96,11 @@ namespace Pipeline
                     continue;
                 }
 
+                if (parameterType.IsAssignableFrom(typeof(ILoggerFactory)))
+                {
+                    arguments[counter] = _loggerFactory;
+                    continue;
+                }
             }
 
             var method = methods.First() ?? throw new MissingMethodException(type.Name, methodName);
@@ -98,9 +108,4 @@ namespace Pipeline
             await (Task)method?.Invoke(instance, arguments!);
         }
     }
-
-    //public sealed class Pipeline<TRequest, TResponse> : IRequestResponseContext<TRequest, TResponse>
-    //{
-
-    //}
 }

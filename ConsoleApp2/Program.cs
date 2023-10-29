@@ -1,24 +1,22 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using Pipeline;
 
-Console.WriteLine("Hello World");
+IServiceProvider serviceProvider = new ServiceCollection()
+    .AddLogging((loggingBuilder) => loggingBuilder
+        .SetMinimumLevel(LogLevel.Debug)
+        .AddConsole()
+        )
+    .BuildServiceProvider();
 
-using var loggerFactory = LoggerFactory.Create(builder =>
-{
-    builder
-        .AddFilter("Microsoft", LogLevel.Warning)
-        .AddFilter("System", LogLevel.Warning)
-        .AddFilter("LoggingConsoleApp.Program", LogLevel.Debug);
-        //.AddConsole()
-        //.AddEventLog();
-});
-ILogger logger = loggerFactory.CreateLogger<Program>();
+var loggerFactory = serviceProvider.GetService<ILoggerFactory>();
+var logger = loggerFactory?.CreateLogger<Program>();
 
-logger.LogInformation("Start creating the pipeline:");
+logger?.LogInformation("Start creating the pipeline:");
 
 Pipeline.Pipeline pipeline = 
-    new Pipeline.Pipeline()
+    new Pipeline.Pipeline(loggerFactory)
     .Use<Command1>()
     .Use<Command2>()
     .Use<Command3>()
