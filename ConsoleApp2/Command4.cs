@@ -1,9 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Pipeline
 {
@@ -28,8 +23,8 @@ namespace Pipeline
             action.Invoke(options);
 
             Console.WriteLine(@$"Options are: 
-                    {nameof(Command4Options.IntProperty)}: {options.IntProperty}
-                    {nameof(Command4Options.StringProperty)}: {options.StringProperty}");
+                {nameof(Command4Options.IntProperty)}: {options.IntProperty}
+                {nameof(Command4Options.StringProperty)}: {options.StringProperty}");
 
             var initResponse = context.Response;
             context.Response = $"{options.StringProperty} & {options.IntProperty}";

@@ -20,15 +20,26 @@ namespace Pipeline
             _logger?.LogDebug("{Module} initialized", $"{nameof(Pipeline)}");
         }
 
-        public Pipeline Use<TComand>() where TComand : ICommand
+        public Pipeline Use<TCommand>()
         {
-            _actions.Enqueue(new KeyValuePair<Type, object?>(typeof(TComand), null));
+            _actions.Enqueue(new KeyValuePair<Type, object?>(typeof(TCommand), null));
+            _logger?.LogDebug("Added command of type {Command type}", typeof(TCommand));
+            return this;
+        }
+
+        public Pipeline Use<TCommand, TValue>(TValue? @value) where TCommand : ICommand<TValue>
+        {
+            _actions.Enqueue(new KeyValuePair<Type, object?>(typeof(TCommand), @value));
+            _logger?.LogDebug("Added command of type {Command type}", typeof(TCommand));
+
             return this;
         }
 
         public Pipeline Use<TCommand, TOptions>(Action<TOptions>? action = null) where TCommand : ICommand<TOptions>
         {
             _actions.Enqueue(new KeyValuePair<Type, object?>(typeof(TCommand), action));
+            _logger?.LogDebug("Added command of type {Command type}", typeof(TCommand));
+
             return this;
         }
 
@@ -75,12 +86,15 @@ namespace Pipeline
             {
                 var parameter = parameters[counter];
                 var parameterType = parameters[counter].ParameterType;
+                var parameterName = parameter.Name;
 
-                if (parameterType.IsGenericType
+                var isNextDelegate = parameterType.IsGenericType
                     && parameterType.GetGenericTypeDefinition() == typeof(Func<>)
-                    && parameter!.Name.Equals("next", StringComparison.OrdinalIgnoreCase))
+                    && !string.IsNullOrWhiteSpace(parameterName) && parameterName.Equals("next", StringComparison.OrdinalIgnoreCase);
+                if (isNextDelegate)
                 {
-                    arguments[counter] = ExecuteNext;
+                    Func<Task> del = ExecuteNext;
+                    arguments[counter] = del;
                     continue;
                 }
 
@@ -96,16 +110,17 @@ namespace Pipeline
                     continue;
                 }
 
-                if (parameterType.IsAssignableFrom(typeof(ILoggerFactory)))
+                var isLoggerFactory = parameterType.IsAssignableFrom(typeof(ILoggerFactory)) && _loggerFactory != null;
+                if (isLoggerFactory)
                 {
-                    arguments[counter] = _loggerFactory;
+                    arguments[counter] = _loggerFactory!;
                     continue;
                 }
             }
 
             var method = methods.First() ?? throw new MissingMethodException(type.Name, methodName);
-            var instance = Activator.CreateInstance(type);
-            await (Task)method?.Invoke(instance, arguments!);
+            var instance = Activator.CreateInstance(type) ?? throw new InvalidOperationException();
+            await (Task)method.Invoke(instance!, arguments!);
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace Pipeline
 {
-    public sealed class Command1 : ICommand
+    public sealed class Command1
     {
         public async Task ExecuteAsync(Func<Task> next)
         {

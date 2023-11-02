@@ -18,8 +18,8 @@ logger?.LogInformation("Start creating the pipeline:");
 Pipeline.Pipeline pipeline = 
     new Pipeline.Pipeline(loggerFactory)
     .Use<Command1>()
-    .Use<Command2>()
-    .Use<Command3>()
+    .Use<Command2, int>(23)
+    .Use<Command3, string>("something to display")
     .Use<Command4, Command4Options>(options =>
     {
         options.StringProperty += "; added 'zzz'";
@@ -27,4 +27,4 @@ Pipeline.Pipeline pipeline =
 
 await pipeline.ExecuteAsync<PipelineContext>();
 
-Console.Read();
+Console.ReadKey();
