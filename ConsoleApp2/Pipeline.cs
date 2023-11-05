@@ -66,7 +66,7 @@ namespace Pipeline
                 await InvokeMethodAsync(action.Key, action.Value, (TContext)_context);
             }
 
-            Console.WriteLine("Pipeline finished the actions executions!");
+            Console.WriteLine("Pipeline finished the execution of actions!");
         }
 
         private async Task ExecuteNextAsync()
