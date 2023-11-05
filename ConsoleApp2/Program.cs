@@ -17,7 +17,7 @@ logger?.LogInformation("Start creating the pipeline:");
 
 Pipeline.Pipeline pipeline = 
     new Pipeline.Pipeline(loggerFactory)
-    .Run(() => WriteColloredLine("Run some action which can receive pipeline context", ConsoleColor.Magenta))
+    .Run(() => WriteColloredLine("Run some delegate which can receive pipeline context", ConsoleColor.Magenta))
     .Use<Command1>()
     .Use<Command2, int>(23)
     .Use<Command3, string>("something to display")
@@ -25,7 +25,7 @@ Pipeline.Pipeline pipeline =
     {
         options.StringProperty += "; added 'zzz'";
     })
-    .Run(() => WriteColloredLine("And another action...", ConsoleColor.Cyan));
+    .Run(() => WriteColloredLine("And another delegate...", ConsoleColor.Cyan));
 
 await pipeline.ExecuteAsync<PipelineContext>();
 
