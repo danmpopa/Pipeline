@@ -43,6 +43,13 @@ namespace Pipeline
             return this;
         }
 
+        public Pipeline Run(Action action)
+        {
+            _actions.Enqueue(new KeyValuePair<Type, object?>(typeof(Action), action));
+            _logger?.LogDebug("Added command of type {Command type}", typeof(Action));
+            return this;
+        }
+
         public async Task ExecuteAsync<TContext>(Action<TContext>? options = null) 
             where TContext : IRequestContext, new()
         {
@@ -62,7 +69,7 @@ namespace Pipeline
             Console.WriteLine("Pipeline finished the actions executions!");
         }
 
-        private async Task ExecuteNext()
+        private async Task ExecuteNextAsync()
         {
             if (_actions.TryDequeue(out var action))
             {
@@ -75,6 +82,13 @@ namespace Pipeline
 
         private async Task InvokeMethodAsync(Type type, object? actionArg, object? context)
         {
+            if (type.Equals(typeof(Action)))
+            {
+                ((Action?)actionArg)?.Invoke();
+                await ExecuteNextAsync();
+                return;
+            }
+
             const string methodName = "ExecuteAsync";
 
             var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance)
@@ -93,7 +107,7 @@ namespace Pipeline
                     && !string.IsNullOrWhiteSpace(parameterName) && parameterName.Equals("next", StringComparison.OrdinalIgnoreCase);
                 if (isNextDelegate)
                 {
-                    Func<Task> del = ExecuteNext;
+                    Func<Task> del = ExecuteNextAsync;
                     arguments[counter] = del;
                     continue;
                 }
@@ -120,7 +134,7 @@ namespace Pipeline
 
             var method = methods.First() ?? throw new MissingMethodException(type.Name, methodName);
             var instance = Activator.CreateInstance(type) ?? throw new InvalidOperationException();
-            await (Task)method.Invoke(instance!, arguments!);
+            await Task.FromResult(method.Invoke(instance, arguments!));
         }
     }
 }

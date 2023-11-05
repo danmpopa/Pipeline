@@ -6,6 +6,7 @@
         {
             await next();
             Console.WriteLine($"Executing {nameof(Command2)} after next --> {@value}");
+            Console.WriteLine($"Finished {nameof(Command2)}");
         }
     }
 }

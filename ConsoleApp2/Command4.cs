@@ -36,7 +36,7 @@ namespace Pipeline
 
             logger?.LogDebug("Some debugging message with argument: '{SomeParam}'", "some argument");
 
-            Console.WriteLine($"Executing {nameof(Command4)} after next");
+            Console.WriteLine($"Finished {nameof(Command4)}");
         }
     }
 }
